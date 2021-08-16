@@ -1,0 +1,26 @@
+---
+title: "Estudio de Demanda Valparaíso"
+author: "Estudios"
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output: 
+  html_document:
+    theme: simplex
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(htmltools)
+library(knitr)
+library(kableExtra)
+library(DiagrammeR)
+```
+
+```{r, echo=FALSE}
+htmltools::img(src = knitr::image_uri(file.path("../data/img/logoTransdev.png")
+                                      ),
+               alt = 'logo', 
+               style = 'position:absolute; top:0; right:0; padding:1px;')
+```
+
+## INTRODUCCIÓN
