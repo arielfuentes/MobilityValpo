@@ -14,6 +14,11 @@ library(htmltools)
 library(knitr)
 library(kableExtra)
 library(DiagrammeR)
+library(tibble)
+library(ggplot2)
+library(leaflet)
+library(tmap)
+library(tmaptools)
 ```
 
 ```{r, echo=FALSE}
@@ -24,3 +29,51 @@ htmltools::img(src = knitr::image_uri(file.path("../data/img/logoTransdev.png")
 ```
 
 ## INTRODUCCIÓN
+
+En este documento se analizará la movilidad de Valparaiso y la aplicación de las nuevas rutas eléctricas.
+Es un electrocorredor con 2 nuevos servicios, recorrerán entre Placilla y Plaza Wheelwrigth), diferenciándose en sus trazados en Placilla. Como referencia inicial tenemos el recorrido 901, 902, 903 y 800x(trolebus).
+
+Referencialmente, la característica de los servicios es la siguiente:
+
+- Recaudación
+
+````{r, echo = F}
+Rec <- tibble(Variable = c("Demanda Potencial", 
+                    "Flota",
+                    "Tarifa", 
+                    "Recaudación Anual Estimada", 
+                    "Total Km Comerciales Anuales"), 
+       Valor = c(13187, 35, 500, 1556546267, 2371792), 
+       Unidad = c("pax/dln", "Bus","$/adulto", "$", "distancia"))
+kable(Rec, format.args = list(big.mark = ",")) %>%
+  kable_paper("striped", full_width = F) %>%
+  column_spec(1:2, bold = T, color = "white", background = "#D7261E")
+````
+
+- Frecuencia
+
+````{r, echo = F}
+Frec <- tibble(Servicio = rep(c("E01", "E02"), each = 48),
+       Sentido = rep(c("Ida", "Regreso"), each = 24, times = 2),
+       Longitud = rep(c(23, 23.7, 24.1, 23.6), each = 24),
+       Frecuencia = c(rep(0, 5), 2, 5, 6, 6, 5, 4, 4, 4, 5, 4, 4, 4, 5, 6, 6, 4, 2, 0, 0, rep(0, 6), 1, 6, 6, rep(4, 5), 5, 4, 4, rep(6, 4), 4, 1, 0, rep(0, 6), 2, 6, 5, rep(4, 4), 5, rep(4, 3), 5, 5, 4, 3, 1, 0, 0, rep(0, 7), 2, 5, 5, rep(4, 4), 5, 4, 4, 5, 6, 5, 4, 3, 0, 0),
+       Hora = rep(seq(from = 0, to=23), 4))
+
+ggplot(Frec, aes(x=Hora, y=Frecuencia)) +
+  geom_line(color = "#D7261E", size = 1) +
+  facet_wrap(vars(Servicio, Sentido)) +
+  theme_bw()
+````
+
+La topología de los recorridos es la siguiente:
+
+````{r, message = F, warning = F, echo = F, fig.align = 'center', out.width = '100%'}
+map <- tm_basemap(leaflet::providers$Esri.WorldImagery) +
+  tm_basemap(leaflet::providers$OpenStreetMap) +
+  tm_shape(elec_rt) + 
+  tm_lines("Rutas", 
+           lwd = 2, 
+           palette = "Dark2", 
+           popup.vars = c("Rutas", "Dist"))
+tmap_leaflet(map)
+````
