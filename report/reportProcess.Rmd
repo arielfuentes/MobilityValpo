@@ -38,14 +38,14 @@ Referencialmente, la característica de los servicios es la siguiente:
 - Recaudación
 
 ````{r, echo = F}
-Rec <- tibble(Variable = c("Demanda Potencial", 
+rts_new <- tibble(Variable = c("Demanda Potencial", 
                     "Flota",
                     "Tarifa", 
                     "Recaudación Anual Estimada", 
                     "Total Km Comerciales Anuales"), 
        Valor = c(13187, 35, 500, 1556546267, 2371792), 
        Unidad = c("pax/dln", "Bus","$/adulto", "$", "distancia"))
-kable(Rec, format.args = list(big.mark = ",")) %>%
+kable(rts_new, format.args = list(big.mark = ",")) %>%
   kable_paper("striped", full_width = F) %>%
   column_spec(1:2, bold = T, color = "white", background = "#D7261E")
 ````
@@ -74,6 +74,27 @@ map <- tm_basemap(leaflet::providers$Esri.WorldImagery) +
   tm_lines("Rutas", 
            lwd = 2, 
            palette = "Dark2", 
-           popup.vars = c("Rutas", "Dist"))
+           popup.vars = c("Rutas", "Dist")) +
+  tm_shape(rts_geo.h[[1]], name = "metro") +
+  tm_symbols(col = "#D7261E", size = .1) +
+  tm_shape(rts_geo.h[[2]], name = "UN1") +
+  tm_lines(col = "black") +
+  tm_shape(rts_geo.h[[3]], name = "UN2") +
+  tm_lines(col = "black") +
+  tm_shape(rts_geo.h[[4]], name = "UN3") +
+  tm_lines(col = "black") +
+  tm_shape(rts_geo.h[[5]], name = "UN4") +
+  tm_lines(col = "black") +
+  tm_shape(rts_geo.h[[6]], name = "UN5") +
+  tm_lines(col = "black") +
+  tm_shape(rts_geo.h[[7]], name = "UN6") +
+  tm_lines(col = "black") +
+  tm_shape(rts_geo.h[[8]], name = "UN7") +
+  tm_lines(col = "black") +
+  tm_shape(rts_geo.h[[9]], name = "UN8") +
+  tm_lines(col = "black") +
+  tm_shape(rts_geo.h[[10]], name = "UN9") +
+  tm_lines(col = "black")
+
 tmap_leaflet(map)
 ````
