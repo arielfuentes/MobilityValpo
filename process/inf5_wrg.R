@@ -16,6 +16,22 @@ for (i in 2:length(valam_1$idx)){
 ##split by groups ----
 valam_1 <- group_split(valam_1, idx)
 
+desc <- lapply(valam_1, function(x) filter(x, 
+                                   str_starts(x$col1, 
+                                              c("^L"))) %>%
+         separate(col = col1, into = LETTERS[1:5], sep = ":") %>%
+         select(B, D) %>%
+         separate(B, c("w", "rt_id", "rt", "sen")) %>%
+         separate(D, c("w2", "num", "dec")) %>%
+         mutate(intervalo = as.numeric(paste0(num, ".", dec)),
+                idx_rt = paste(rt_id, rt)) %>%
+         select(idx_rt, rt_id, rt, sen, intervalo))
+
+filter(valam_1[[1]], 
+       str_starts(valam_1[[1]]$col1, 
+                  c("^DU|^DISTANCIA R|^PAS|^NU|^PAX"))) %>%
+  separate(col1, c("name", "I"), sep = ":") %>%
+  separate(I, c("A", "B", "C", "D", "E"))
 filter(valam_1[[1]], str_starts(valam_1[[1]]$col1, "NO") == T)
 filter(valam_1[[1]], str_starts(valam_1[[1]]$col1, "TI") == T)
 filter(valam_1[[1]], str_starts(valam_1[[1]]$col1, "DISTANCIA :") == T)
@@ -26,3 +42,22 @@ filter(valam_1[[1]], str_starts(valam_1[[1]]$col1, "B") == T)
 
 filter(valam_1[[1]], str_starts(valam_1[[1]]$col1, c("NO", "TI", "FL", "TASA USO  :", "S", "B")) == T)
 filter(valam_1[[1]], str_starts(valam_1[[1]]$col1, c("^NO|^TI|^DISTANCIA :|^FL|^TASA USO  :|^S|^B")) == T)
+
+x <- filter(valam_1[[1]], 
+       str_starts(valam_1[[1]]$col1, 
+                  c("^L"))) %>%
+  separate(col = col1, into = LETTERS[1:5], sep = ":") %>%
+  select(B, D) %>%
+  separate(B, c("w", "rt_id", "rt", "sen")) %>%
+  separate(D, c("w2", "num", "dec")) %>%
+  mutate(intervalo = as.numeric(paste0(num, ".", dec)),
+         idx_rt = paste(rt_id, rt)) %>%
+  select(idx_rt, rt_id, rt, sen, intervalo)
+# stringr::str_remove(x, 
+#                     c("LINEA IDA| LINEA REGRESO | INTERVALO | TARIFA"))  %>%
+#   as_tibble() %>%
+#   tidyr::separate(c("LINEA", "MODO", "CAPACIDAD", "TARIFA"), sep = ":")
+
+
+
+# data.frame(x = c(NA, "a.b", "a.d", "b.c")) %>% separate(x, c("A", "B"))

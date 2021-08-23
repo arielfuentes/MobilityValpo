@@ -1,5 +1,5 @@
 ---
-title: "Estudio de Demanda Valparaíso"
+title: "Proyecto Valparaíso: 35 ebuses"
 author: "Estudios"
 date: '`r format(Sys.time(), "%d %B, %Y")`'
 output: 
@@ -97,4 +97,18 @@ map <- tm_basemap(leaflet::providers$Esri.WorldImagery) +
   tm_lines(col = "black")
 
 tmap_leaflet(map)
+````
+
+La elevación del Terreno en los puntos que pasan los recorridos es la siguiente:
+
+````{r, echo = F, warning = F}
+ggplot(elec_rst, aes(x, elevation)) +
+  geom_point() +
+  labs(title = "Elevaciones", y = "Elevación") +
+  facet_wrap(~Rutas, nrow = 3)
+
+ggplot(elec_rst, aes(x, `% Elev`)) +
+  geom_point() +
+  labs(title = "Porcentaje de Elevación", y = "%") +
+  facet_wrap(~Rutas, nrow = 3)
 ````

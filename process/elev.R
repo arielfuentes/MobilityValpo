@@ -1,0 +1,22 @@
+#f(x) 2 get elevation data ----
+##based on linestring ----
+elev_pts <- function(ln_fl){
+  #libraries
+  library(elevatr)
+  library(dplyr)
+  library(sf)
+  #transform 2 points ----
+  pt <- ln_fl %>%
+    st_transform(32719) %>%
+    st_cast("POINT") %>%
+    select(-Dist)
+  #get elevation pts ----
+  elev_ptx <- get_elev_point(pt, src = "aws", z = 14) %>%
+    mutate(x = st_coordinates(.)[, 1],
+           y = st_coordinates(.)[, 2],
+           `% Elev` = (elevation - lag(elevation))/lag(elevation)*100)
+  return(elev_ptx)
+}
+
+# elec_rst <- elev_pts(elec_rt)
+# readr::write_delim("report/elev.csv", x = elec_rst, delim = ";")
