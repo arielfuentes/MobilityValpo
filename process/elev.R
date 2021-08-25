@@ -5,16 +5,23 @@ elev_pts <- function(ln_fl){
   library(elevatr)
   library(dplyr)
   library(sf)
+  library(tidyr)
   #transform 2 points ----
   pt <- ln_fl %>%
     st_transform(32719) %>%
     st_cast("POINT") %>%
-    select(-Dist)
+    select(-Dist) %>%
+    group_by(Rutas) %>%
+    mutate(Orden = row_number()) %>%
+    ungroup()
   #get elevation pts ----
   elev_ptx <- get_elev_point(pt, src = "aws", z = 14) %>%
     mutate(x = st_coordinates(.)[, 1],
            y = st_coordinates(.)[, 2],
-           `% Elev` = (elevation - lag(elevation))/lag(elevation)*100)
+           distancia = sqrt((y-lag(y))^2+(x-lag(x))^2),
+           distancia = replace_na(distancia, 0),
+           `% elev` = (elevation - lag(elevation))/(distancia - lag(distancia))*100,
+           `% elev` = replace_na(`% elev`, 0))
   return(elev_ptx)
 }
 

@@ -102,13 +102,13 @@ tmap_leaflet(map)
 La elevación del Terreno en los puntos que pasan los recorridos es la siguiente:
 
 ````{r, echo = F, warning = F}
-ggplot(elec_rst, aes(x, elevation)) +
-  geom_point() +
+ggplot(elec_rst, aes(Orden, elevation)) +
+  geom_line() +
   labs(title = "Elevaciones", y = "Elevación") +
   facet_wrap(~Rutas, nrow = 3)
 
-ggplot(elec_rst, aes(x, `% Elev`)) +
-  geom_point() +
-  labs(title = "Porcentaje de Elevación", y = "%") +
+ggplot(elec_rst, aes(Orden, `% elev`)) +
+  geom_line() +
+  labs(title = "Pendiente", y = "%") +
   facet_wrap(~Rutas, nrow = 3)
 ````

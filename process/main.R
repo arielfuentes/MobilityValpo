@@ -17,7 +17,12 @@ source("process/elev.R", encoding = "utf-8")
 elec_rst <- elev_pts(elec_rt)
 #read gpkg ----
 rts_geo.h <- map(list.files("data/recorridos/", full.names = T), 
-                 st_read) 
+                 st_read)
+#network data ----
+source("process/inf5_wrg.R", encoding = "utf-8")
+inf5_fl <- list.files("data/estraus/", full.names = T)
+nt_dt <- lapply(inf5_fl, function(x) inf5(x)) %>%
+  bind_rows()
 #calling process ----
 render(input = "report/reportProcess.Rmd", 
        output_file = "Reporte Demanda", 
