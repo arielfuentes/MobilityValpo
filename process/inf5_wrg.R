@@ -27,8 +27,16 @@ inf5 <- function(lpa_fl){
                      separate(D, c("w2", "num", "dec")) %>%
                      mutate(intervalo = as.numeric(paste0(num, ".", dec)),
                             idx_rt = paste(rt_id, rt)) %>%
-                     select(idx_rt, rt_id, rt, sen, intervalo)) %>%
-    bind_rows()
+                     select(idx_rt, rt_id, rt, sen, intervalo)) 
+  ##right structure for interval data ----
+  id_tbl2 <- lapply(id_tbl, function(x) mutate(bind_rows(x, x), 
+                                              sen = c("Ida", "Regreso")
+                                              )
+                   ) %>%
+    bind_rows() %>% 
+    mutate(vrbl = "intervalo") %>% 
+    select(valor = intervalo, idx_rt, vrbl, sen)
+  
   #extract routes kpi
   params <- lapply(lpa, function(x) filter(x, str_starts(x$col1, c("^DU|^DISTANCIA R|^PAS|^PAX")
                                                          )
@@ -36,7 +44,9 @@ inf5 <- function(lpa_fl){
                    )
   params <- lapply(1:length(params), function(x) select(params[[x]], col1))
   #change structure of id_tbl ----
-  id_tbl <- mutate(id_tbl, vrbl = "intervalo") %>% 
+  id_tbl <- id_tbl %>%
+    bind_rows() %>% 
+    mutate(id_tbl, vrbl = "intervalo") %>% 
     select(valor = intervalo, idx_rt, vrbl, sen)
   #main output ----
   ##extracting numbers ----
@@ -56,9 +66,14 @@ inf5 <- function(lpa_fl){
                                           )
                        ) %>%
     bind_rows() %>%
-    bind_rows(id_tbl) %>%
+    bind_rows(id_tbl2) %>%
     arrange(idx_rt, sen) %>%
-    mutate(fl = str_split(lpa_fl, "/")[[1]][3])
+    mutate(fl = str_split(lpa_fl, "/")[[1]][3]) %>%
+    pivot_wider(names_from = vrbl, values_from = valor) %>%
+    filter(`DURACION RECORRIDO` != 0 &
+             `DISTANCIA RECORRIDO` != 0 & 
+             `PASAJEROS TRANSPORTADOS` != 0 & 
+             `PAX * KM` != 0)
   #final table ----
   return(params_tbl)
 }
