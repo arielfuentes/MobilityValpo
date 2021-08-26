@@ -20,7 +20,7 @@ elev_pts <- function(ln_fl){
            y = st_coordinates(.)[, 2],
            distancia = sqrt((y-lag(y))^2+(x-lag(x))^2),
            distancia = replace_na(distancia, 0),
-           `% elev` = (elevation - lag(elevation))/(distancia - lag(distancia))*100,
+           `% elev` = (elevation - lag(elevation))/distancia*100,
            `% elev` = replace_na(`% elev`, 0))
   return(elev_ptx)
 }
