@@ -22,7 +22,21 @@ rts_geo.h <- map(list.files("data/recorridos/", full.names = T),
 source("process/inf5_wrg.R", encoding = "utf-8")
 inf5_fl <- list.files("data/estraus/", full.names = T)
 nt_dt <- lapply(inf5_fl, function(x) inf5(x)) %>%
-  bind_rows()
+  bind_rows() %>%
+  mutate(per = case_when(fl %in% c("informe5_bus_valam_1.lpa", 
+                                   "informe5_busmer_valam_1.lpa",
+                                   "informe5_mer_valam_1.lpa") ~ "am1",
+                         fl %in% c("informe5_bus_valam_2.lpa", 
+                                   "informe5_busmer_valam_2.lpa",
+                                   "informe5_mer_valam_2.lpa") ~ "am2",
+                         fl %in% c("informe5_bus_valfp_1.lpa", 
+                                   "informe5_busmer_valfp_1.lpa",
+                                   "informe5_mer_valfp_1.lpa") ~ "fp",
+                         fl %in% c("informe5_bus_valpt_1.lpa", 
+                                   "informe5_busmer_valpt_1.lpa",
+                                   "informe5_mer_valpt_1.lpa") ~ "pt1",
+                         T ~ "otro"))
+source("process/flt.R", encoding = "utf-8") 
 #calling process ----
 render(input = "report/reportProcess.Rmd", 
        output_file = "Reporte Demanda", 
