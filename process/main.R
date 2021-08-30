@@ -36,8 +36,13 @@ nt_dt <- lapply(inf5_fl, function(x) inf5(x)) %>%
                          fl %in% c("informe5_bus_valpt_1.lpa", 
                                    "informe5_busmer_valpt_1.lpa",
                                    "informe5_mer_valpt_1.lpa") ~ "pt1",
-                         T ~ "otro")) %>%
-  separate(idx_rt, c("idx", "rt"), sep = " ")
+                         T ~ "otro"),
+         frec = 60/intervalo) %>%
+  separate(idx_rt, c("idx", "rt"), sep = " ") %>%
+  separate(fl, 
+           into = c("informe", "modo1", "modo2", "end"),
+           sep = "_") %>%
+  select(-c("informe", "modo2", "end"))
 ##adding fleet data ----
 source("process/flt.R", encoding = "utf-8") 
 
@@ -58,3 +63,7 @@ render(input = "report/reportProcess.Rmd",
        output_file = "Reporte Demanda", 
        output_dir = "report",
        encoding = "utf8")
+
+ggpairs(nt_dt[nt_dt$per == "am1",c(4:9, 11)], aes(color = modo1)) 
+ggpairs(nt_dt[nt_dt$per == "am2",c(4:9, 11)], aes(color = modo1)) 
+ggpairs(nt_dt[nt_dt$per == "fp" & nt_dt$modo1 %in% c("bus","busmer"),c(4:9, 11)], aes(color = modo1)) 
