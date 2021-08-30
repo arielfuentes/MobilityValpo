@@ -10,6 +10,8 @@ fleet_pt1 <- readxl::read_excel("data/Flota.xlsm", sheet = "bus", range = "J2:K2
   mutate(per = "pt1")
 
 fleet <- list(fleet_am1, fleet_am2, fleet_fp, fleet_pt1) %>%
-  bind_rows()
+  bind_rows() %>%
+  mutate(idx = as.character(LINEA)) %>%
+  select(-LINEA)
 
 rm(fleet_am1, fleet_am2, fleet_fp, fleet_pt1)

@@ -112,3 +112,72 @@ ggplot(elec_rst, aes(Orden, `% elev`)) +
   labs(title = "Pendiente", y = "%") +
   facet_wrap(~Rutas, nrow = 3)
 ````
+
+Para entender el efecto de la Temperatura se grafica las temperaturas extremas, tanto de la *<span style="color: #FF0000;">línea base</span>* (1980-2010) como el *<span style="color: #FF0000;">Escenario</span>* (2050):
+
+````{r, echo = F, warning = F}
+ggplot(temp, aes(Sector_class, Temp, fill = T_class)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~factor(tipo, levels = c("Linea Base", "2050")
+                     )
+             ) +
+  xlab("Temperatura por Zona") +
+  labs(fill = "Tipo de Temperatura",
+       caption = "TNJ: Temperatura mínima invernal\nTXE: Temperatura máxima estival") +
+  theme(axis.text=element_text(size=8)) +
+  scale_x_discrete(labels = c("Lit.", "Sec. Int.", "Lit.", "Sec. Int."))  
+````
+
+Respecto al desarrollo operacional , el acopio en los cabezales es el siguiente:
+
+````{r, echo = F, warning = F}
+ggplot(acopios_Cab, aes(x=minuto, y=value)) +
+  geom_line() +
+  facet_wrap(~factor(posición, 
+                     levels = c("Plaza Wheelwright_LaboralN",
+                                "Plaza Wheelwright_SábadoN",
+                                "Plaza Wheelwright_DomingoN", 
+                                "Curauma_LaboralN",
+                                "Curauma_SábadoN",
+                                "Curauma_DomingoN")
+                     )
+             ) 
+````
+
+Para los buses en circulación:
+
+````{r, echo = F, warning = F}
+ggplot(acopios_Circ, aes(x=minuto, y=value)) +
+  geom_line() +
+  facet_wrap(~factor(posición, 
+                     levels = c("BusesConducción_LaboralN",
+                                "BusesConducción_SábadoN",
+                                "BusesConducción_DomingoN")
+                     )
+             )
+````
+
+Los buses en depósito con propósito de carga:
+
+````{r, echo = F, warning = F}
+ggplot(acopios_Dep, aes(x=minuto, y=value)) +
+  geom_line() +
+  facet_wrap(~factor(posición, 
+                     levels = c("DepósitoCargando_LaboralN",
+                                "DepósitoCargando_SábadoN", 
+                                "DepósitoCargando_DomingoN")
+                     )
+             )
+
+````
+
+Las velocidades de los nuevos recorridos son:
+
+````{r, echo = F, warning = F}
+ggplot(vel, aes(hora, Velocidad)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~SS + factor(Tipo_día,
+                          levels = c("Laboral", "Sábado", "Domingo")),
+             nrow = 4) +
+  scale_x_continuous(breaks = seq(5,24, by = 2))
+````

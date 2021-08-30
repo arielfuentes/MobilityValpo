@@ -3,6 +3,7 @@ library(rmarkdown)
 library(dplyr)
 library(purrr)
 library(sf)
+library(tidyr)
 source("process/kmz2sf.R", encoding = "utf-8")
 #read kmz ----
 elec_rt <- kmz2sf(kmz_path = "data/trazado+concurso+valparaíso.kmz",
@@ -35,8 +36,23 @@ nt_dt <- lapply(inf5_fl, function(x) inf5(x)) %>%
                          fl %in% c("informe5_bus_valpt_1.lpa", 
                                    "informe5_busmer_valpt_1.lpa",
                                    "informe5_mer_valpt_1.lpa") ~ "pt1",
-                         T ~ "otro"))
+                         T ~ "otro")) %>%
+  separate(idx_rt, c("idx", "rt"), sep = " ")
+##adding fleet data ----
 source("process/flt.R", encoding = "utf-8") 
+
+lines_dt <- nt_dt %>%
+  group_by(idx, per) %>%
+  summarise(`DURACION RECORRIDO` = sum(`DURACION RECORRIDO`),
+            `DISTANCIA RECORRIDO` = sum(`DISTANCIA RECORRIDO`),
+            `PASAJEROS TRANSPORTADOS` = sum(`PASAJEROS TRANSPORTADOS`),
+            `PAX * KM` = mean(`PAX * KM`),
+            intervalo = mean(intervalo)) %>%
+  left_join(fleet)
+rm(fleet, inf5, inf5_fl)
+
+#adding general parameters ----
+source("process/Gl_param.R", encoding = "utf-8")
 #calling process ----
 render(input = "report/reportProcess.Rmd", 
        output_file = "Reporte Demanda", 
