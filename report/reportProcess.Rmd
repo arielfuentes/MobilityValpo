@@ -182,3 +182,66 @@ ggplot(vel, aes(hora, Velocidad)) +
              nrow = 4) +
   scale_x_continuous(breaks = seq(5,24, by = 2))
 ````
+
+La relación entre las variables procesadas para los buses a nivel de sentido es la siguiente:
+
+- Punta Mañana 1:
+
+````{r, echo = F, warning = F, message = F, out.width = '100%'}
+ggpairs(nt_dt[nt_dt$per == "am1" & nt_dt$modo1 %in% c("bus","busmer"), c(4:9, 11)], aes(color = modo1)) +
+theme_grey(base_size = 4)
+````
+
+- Punta Mañana 2:
+
+````{r, echo = F, warning = F, message = F, out.width = '100%'}
+ggpairs(nt_dt[nt_dt$per == "am2" & nt_dt$modo1 %in% c("bus","busmer"), c(4:9, 11)], aes(color = modo1)) +
+theme_grey(base_size = 4)
+````
+
+- Fuera de Punta:
+
+````{r, echo = F, warning = F, message = F, out.width = '100%'}
+ggpairs(nt_dt[nt_dt$per == "fp" & nt_dt$modo1 %in% c("bus","busmer"), c(4:9, 11)], aes(color = modo1)) +
+theme_grey(base_size = 4)
+````
+
+- Punta Tarde:
+
+````{r, echo = F, warning = F, message = F, out.width = '100%'}
+ggpairs(nt_dt[nt_dt$per == "pt1" & nt_dt$modo1 %in% c("bus","busmer"), c(4:9, 11)], aes(color = modo1)) +
+theme_grey(base_size = 4)
+````
+
+En cambio si queremos ver la relación con la variable flota, lo hacemos a nivel de linea:
+
+- Punta Mañana 1:
+
+````{r, echo = F, warning = F, message = F, out.width = '100%'}
+ggpairs(lines_dt[lines_dt$per == "am1" & lines_dt$modo1 %in% c("bus","busmer"), c(3:9)], aes(color = modo1)) +
+  theme_grey(base_size = 4)
+````
+
+- Punta Mañana 2:
+
+````{r, echo = F, warning = F, message = F, out.width = '100%'}
+ggpairs(lines_dt[lines_dt$per == "am2" & lines_dt$modo1 %in% c("bus","busmer"), c(3:9)], aes(color = modo1)) +
+  theme_grey(base_size = 4)
+
+````
+
+- Fuera de Punta:
+
+````{r, echo = F, warning = F, message = F, out.width = '100%'}
+ggpairs(lines_dt[lines_dt$per == "fp" & lines_dt$modo1 %in% c("bus","busmer"), c(3:9)], aes(color = modo1)) +
+  theme_grey(base_size = 4)
+
+````
+
+- Punta Tarde:
+
+````{r, echo = F, warning = F, message = F, out.width = '100%'}
+ggpairs(lines_dt[lines_dt$per == "pt1" & lines_dt$modo1 %in% c("bus","busmer"), c(3:9)], aes(color = modo1)) +
+  theme_grey(base_size = 4)
+````
+

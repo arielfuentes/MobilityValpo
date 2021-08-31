@@ -42,18 +42,25 @@ nt_dt <- lapply(inf5_fl, function(x) inf5(x)) %>%
   separate(fl, 
            into = c("informe", "modo1", "modo2", "end"),
            sep = "_") %>%
-  select(-c("informe", "modo2", "end"))
+  select(-c("informe", "modo2", "end")) %>%
+  rename(Duración = `DURACION RECORRIDO`,
+         Distancia = `DISTANCIA RECORRIDO`,
+         `Pax Total` = `PASAJEROS TRANSPORTADOS`,
+         `Pax * Km` = `PAX * KM`,
+         Intervalo = intervalo,
+         Frec = frec)
 ##adding fleet data ----
 source("process/flt.R", encoding = "utf-8") 
 
 lines_dt <- nt_dt %>%
-  group_by(idx, per) %>%
-  summarise(`DURACION RECORRIDO` = sum(`DURACION RECORRIDO`),
-            `DISTANCIA RECORRIDO` = sum(`DISTANCIA RECORRIDO`),
-            `PASAJEROS TRANSPORTADOS` = sum(`PASAJEROS TRANSPORTADOS`),
-            `PAX * KM` = mean(`PAX * KM`),
-            intervalo = mean(intervalo)) %>%
-  left_join(fleet)
+  group_by(idx, per, modo1) %>%
+  summarise(Duración = sum(Duración),
+            Distancia = sum(Distancia),
+            `Pax Total` = sum(`Pax Total`),
+            `Pax * Km` = mean(`Pax * Km`),
+            Intervalo = mean(Intervalo),
+            Frec = mean(Frec)) %>%
+  left_join(fleet) 
 rm(fleet, inf5, inf5_fl)
 
 #adding general parameters ----
@@ -63,7 +70,3 @@ render(input = "report/reportProcess.Rmd",
        output_file = "Reporte Demanda", 
        output_dir = "report",
        encoding = "utf8")
-
-ggpairs(nt_dt[nt_dt$per == "am1",c(4:9, 11)], aes(color = modo1)) 
-ggpairs(nt_dt[nt_dt$per == "am2",c(4:9, 11)], aes(color = modo1)) 
-ggpairs(nt_dt[nt_dt$per == "fp" & nt_dt$modo1 %in% c("bus","busmer"),c(4:9, 11)], aes(color = modo1)) 
