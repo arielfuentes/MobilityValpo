@@ -52,15 +52,37 @@ nt_dt <- lapply(inf5_fl, function(x) inf5(x)) %>%
 ##adding fleet data ----
 source("process/flt.R", encoding = "utf-8") 
 
+# lines_dt <- nt_dt %>%
+#   group_by(idx, rt, per, modo1) %>%
+#   summarise(Duración = sum(Duración),
+#             Distancia = sum(Distancia),
+#             `Pax Total` = sum(`Pax Total`),
+#             `Pax * Km` = mean(`Pax * Km`),
+#             Intervalo = mean(Intervalo),
+#             Frec = mean(Frec)) %>%
+#   ungroup() %>%
+#   left_join(fleet)
+
 lines_dt <- nt_dt %>%
-  group_by(idx, per, modo1) %>%
+  left_join(fleet) %>%
+  group_by(rt, per, modo1) %>%
   summarise(Duración = sum(Duración),
             Distancia = sum(Distancia),
             `Pax Total` = sum(`Pax Total`),
             `Pax * Km` = mean(`Pax * Km`),
             Intervalo = mean(Intervalo),
             Frec = mean(Frec)) %>%
-  left_join(fleet) 
+  ungroup() %>%
+  group_by(rt, per) %>%
+  summarise(Duración = mean(Duración),
+            Distancia = mean(Distancia),
+            `Pax Total` = sum(`Pax Total`),
+            `Pax * Km` = max(`Pax * Km`),
+            Intervalo = mean(Intervalo),
+            Frec = mean(Frec)) %>%
+  ungroup() %>%
+  
+  
 rm(fleet, inf5, inf5_fl)
 
 #adding general parameters ----
