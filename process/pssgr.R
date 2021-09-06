@@ -1,6 +1,7 @@
 library(readxl)
 library(dplyr)
 library(stringr)
+library(tidyr)
 #% of type of user and price by route & direction at working day ----
 TipoUsu <- read_xlsx("data/Anexo 6.1 - BD Subidas de Pasajeros Gran Valparaíso - Laboral VF.xlsx",
                      sheet = "Tipo de Pasajero", 
@@ -88,7 +89,7 @@ BD2016 <- read_xlsx("data/Anexo 6.1 - BD Subidas de Pasajeros Gran Valparaíso -
            per, 
            Tarifa, 
            Pasajero) %>%
-  summarise(Demanda = sum(`Factor Expansión`)) %>%
+  summarise(Demanda = sum(Demanda)) %>%
   ungroup()
 
 rm(TipoUsu) 
@@ -120,12 +121,30 @@ sharing <- tibble(Pas = rep(Pas, each = 20),
 
 sharing <- tibble(Servicio = rep(serv, each = 140), 
        Pas_Tar_per = rep(sharing$Pas_Tar_per, times = 106)) %>%
-  separate(Pas_Tar_per, c("Pasajero", "Tarifa", "Per"), sep = "_")
+  separate(Pas_Tar_per, c("Pasajero", "Tarifa", "per"), sep = "_")
 
 sharing <- left_join(sharing, BD2016) %>%
+  select(-UN) %>%
   mutate(Demanda = if_else(is.na(Demanda), 0, Demanda)) %>%
-  arrange(Servicio, Per, Pasajero, Tarifa) %>%
+  arrange(Servicio, per, Pasajero, Tarifa) %>%
   group_by(Servicio,
-           Per) %>%
-  mutate(`% particip` = Demanda/sum(Demanda)) %>%
-  ungroup()
+           per) %>%
+  # mutate(`% particip` = Demanda/sum(Demanda)) %>%
+  ungroup() %>%
+  left_join(distinct(BD2016, Servicio, UN))
+
+shar2 <- left_join(sharing, lines_dt) %>%
+  na.omit() %>%
+  select(-c("Pax Total", "Pax * Km", "Intervalo"))
+
+new_data <- filter(shar2, Servicio %in% c("901", "902")) %>%
+  mutate(Servicio = case_when(Servicio == "901" ~ "E01",
+                              Servicio == "902" ~ "E02"),
+         Demanda = 0,
+         UN = "10",
+         Duración = 6000,
+         Frec = 0,
+         Distancia = case_when(Servicio == "E01" ~ 46.79,
+                               Servicio == "E02" ~ 48.05))
+new_data_pred <- new_data
+  

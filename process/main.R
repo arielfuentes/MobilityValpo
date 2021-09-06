@@ -81,6 +81,7 @@ lines_dt <- nt_dt %>%
             Intervalo = mean(Intervalo),
             Frec = mean(Frec)) %>%
   ungroup() %>%
+  rename(Servicio = rt)
   
   
 rm(fleet, inf5, inf5_fl)
