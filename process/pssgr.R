@@ -146,5 +146,13 @@ new_data <- filter(shar2, Servicio %in% c("901", "902")) %>%
          Frec = 0,
          Distancia = case_when(Servicio == "E01" ~ 46.79,
                                Servicio == "E02" ~ 48.05))
-new_data_pred <- new_data
+new_data_pred <- new_data %>%
+  mutate(Frec = case_when(Servicio == "E01" & per == "am1" ~ 6,
+                          Servicio == "E01" & per == "am2" ~ 12,
+                          Servicio == "E01" & per == "fp" ~ 8,
+                          Servicio == "E01" & per == "pt1" ~ 12,
+                          Servicio == "E02" & per == "am1" ~ 2,
+                          Servicio == "E02" & per == "am2" ~ 8,
+                          Servicio == "E02" & per == "fp" ~ 8,
+                          Servicio == "E02" & per == "pt1" ~ 11))
   
