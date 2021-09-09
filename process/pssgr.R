@@ -12,10 +12,10 @@ TipoUsu <- read_xlsx("data/Anexo 6.1 - BD Subidas de Pasajeros Gran Valparaíso 
 # BD2016 <- read_xlsx("data/Anexo 6.1 - BD Subidas de Pasajeros Gran Valparaíso - Laboral VF.xlsx",
 #                     sheet = "Base Datos",
 #                     skip = 3,
-#                     col_types = c(rep("guess", times = 3),
-#                                   rep("text", times = 2), 
-#                                   rep("guess", times = 28)
-#                     )
+                    # col_types = c(rep("guess", times = 3),
+                    #               rep("text", times = 2),
+                    #               rep("guess", times = 28)
+                    # )
 # ) %>% 
 #   select(c(1:22)) %>% 
 #   filter(row_number() <= 295873) %>%
@@ -50,12 +50,14 @@ TipoUsu <- read_xlsx("data/Anexo 6.1 - BD Subidas de Pasajeros Gran Valparaíso 
 BD2016 <- read_xlsx("data/Anexo 6.1 - BD Subidas de Pasajeros Gran Valparaíso - Laboral VF.xlsx",
                     sheet = "Base Datos",
                     skip = 3,
-                    col_types = c(rep("guess", times = 3),
-                                  rep("text", times = 2), 
-                                  rep("guess", times = 28)
-                    )
-) %>% 
-  select(c(1:22)) %>% 
+                    col_types = c(rep("skip", times = 3),
+                                  rep("text", times = 2),
+                                  rep("skip", times = 9),
+                                  "numeric", 
+                                  rep("skip", times = 3),
+                                  rep("numeric", times = 3),
+                                  rep("skip", times = 12))
+                    ) %>% 
   filter(row_number() <= 295873) %>%
   mutate(Servicio = if_else(str_detect(Servicio, "-") == T,
                             str_sub(Servicio, 1, nchar(Servicio) - 2), 
