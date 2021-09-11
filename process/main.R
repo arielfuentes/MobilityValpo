@@ -48,7 +48,10 @@ nt_dt <- lapply(inf5_fl, function(x) inf5(x)) %>%
          `Pax Total` = `PASAJEROS TRANSPORTADOS`,
          `Pax * Km` = `PAX * KM`,
          Intervalo = intervalo,
-         Frec = frec)
+         Frec = frec) %>%
+  mutate(rt = case_when(rt == "1" ~ "1001",
+                        rt == "2" ~ "1002",
+                        T ~ rt))
 ##adding fleet data ----
 source("process/flt.R", encoding = "utf-8") 
 
@@ -63,26 +66,42 @@ source("process/flt.R", encoding = "utf-8")
 #   ungroup() %>%
 #   left_join(fleet)
 
+# lines_dt <- nt_dt %>%
+#   left_join(fleet) %>%
+#   group_by(rt, per, modo1) %>%
+#   summarise(Duración = sum(Duración),
+#             Distancia = sum(Distancia),
+#             `Pax Total` = sum(`Pax Total`),
+#             `Pax * Km` = mean(`Pax * Km`),
+#             Intervalo = mean(Intervalo),
+#             Frec = mean(Frec)) %>%
+#   ungroup() %>%
+#   group_by(rt, per) %>%
+#   summarise(Duración = mean(Duración),
+#             Distancia = mean(Distancia),
+#             `Pax Total` = sum(`Pax Total`),
+#             `Pax * Km` = max(`Pax * Km`),
+#             Intervalo = mean(Intervalo),
+#             Frec = mean(Frec)) %>%
+#   ungroup() %>%
+#   rename(Servicio = rt)
+
 lines_dt <- nt_dt %>%
-  left_join(fleet) %>%
   group_by(rt, per, modo1) %>%
   summarise(Duración = sum(Duración),
             Distancia = sum(Distancia),
             `Pax Total` = sum(`Pax Total`),
             `Pax * Km` = mean(`Pax * Km`),
-            Intervalo = mean(Intervalo),
-            Frec = mean(Frec)) %>%
+            Frec = sum(Frec)) %>%
   ungroup() %>%
   group_by(rt, per) %>%
   summarise(Duración = mean(Duración),
             Distancia = mean(Distancia),
             `Pax Total` = sum(`Pax Total`),
             `Pax * Km` = max(`Pax * Km`),
-            Intervalo = mean(Intervalo),
             Frec = mean(Frec)) %>%
   ungroup() %>%
-  rename(Servicio = rt)
-  
+  rename(Servicio = rt)  
   
 rm(fleet, inf5, inf5_fl)
 
