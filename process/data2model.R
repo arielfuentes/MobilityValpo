@@ -33,27 +33,39 @@ sharing <- left_join(sharing, BD2016) %>%
 
 shar2 <- left_join(sharing, lines_dt) %>%
   na.omit() %>%
-  select(-c("Pax Total", "Pax * Km", "Intervalo"))
+  select(-c("Pax Total", "Pax * Km"))
 
-#add data for the new routes ----
-new_data <- filter(shar2, Servicio %in% c("901", "902")) %>%
-  mutate(Servicio = case_when(Servicio == "901" ~ "E01",
-                              Servicio == "902" ~ "E02"),
-         Demanda = 0,
-         UN = "10",
-         Duración = 6000,
-         Frec = 0,
-         Distancia = case_when(Servicio == "E01" ~ 46.79,
-                               Servicio == "E02" ~ 48.05))
-new_data_pred <- new_data %>%
-  mutate(Frec = case_when(Servicio == "E01" & per == "am1" ~ 6,
-                          Servicio == "E01" & per == "am2" ~ 12,
-                          Servicio == "E01" & per == "fp" ~ 8,
-                          Servicio == "E01" & per == "pt1" ~ 12,
-                          Servicio == "E02" & per == "am1" ~ 2,
-                          Servicio == "E02" & per == "am2" ~ 8,
-                          Servicio == "E02" & per == "fp" ~ 8,
-                          Servicio == "E02" & per == "pt1" ~ 11))
+#modify data for the scenario ----
+# new_data <- filter(shar2, Servicio %in% c("901", "902")) %>%
+#   mutate(Servicio = case_when(Servicio == "901" ~ "E01",
+#                               Servicio == "902" ~ "1002"),
+#          Demanda = 0,
+#          UN = "10",
+#          Duración = 6000,
+#          Frec = 0,
+         # Distancia = case_when(Servicio == "E01" ~ 46.79,
+         #                       Servicio == "1002" ~ 48.05))
+# new_data_pred <- new_data %>%
+#   mutate(Frec = case_when(Servicio == "E01" & per == "am1" ~ 6,
+#                           Servicio == "E01" & per == "am2" ~ 12,
+#                           Servicio == "E01" & per == "fp" ~ 8,
+#                           Servicio == "E01" & per == "pt1" ~ 12,
+#                           Servicio == "1002" & per == "am1" ~ 2,
+#                           Servicio == "1002" & per == "am2" ~ 8,
+#                           Servicio == "1002" & per == "fp" ~ 8,
+#                           Servicio == "1002" & per == "pt1" ~ 11))
+
+new_data_pred <- shar2 %>%
+  mutate(Frec = case_when(Servicio == "1001" & per == "am1" ~ 6,
+                          Servicio == "1001" & per == "am2" ~ 12,
+                          Servicio == "1001" & per == "fp" ~ 8,
+                          Servicio == "1001" & per == "pt1" ~ 12,
+                          Servicio == "1002" & per == "am1" ~ 2,
+                          Servicio == "1002" & per == "am2" ~ 8,
+                          Servicio == "1002" & per == "fp" ~ 8,
+                          Servicio == "1002" & per == "pt1" ~ 11),
+         Distancia = case_when(Servicio == "1001" ~ 46.79,
+                               Servicio == "1002" ~ 48.05))
 
 new_times <- read_xlsx("data/new_times.xlsx", sheet = "Hoja1") %>%
   separate(sersen, c("Servicio", "Sentido")) %>%
@@ -62,11 +74,13 @@ new_times <- read_xlsx("data/new_times.xlsx", sheet = "Hoja1") %>%
   ungroup()
 
 new_data_pred <- new_data_pred %>%
-  mutate(Duración = case_when(Servicio == "E01" & per == "am1" ~ new_times$Duración[1],
-                              Servicio == "E01" & per == "am2" ~ new_times$Duración[2],
-                              Servicio == "E01" & per == "fp" ~ new_times$Duración[3],
-                              Servicio == "E01" & per == "pt1" ~ new_times$Duración[4],
-                              Servicio == "E02" & per == "am1" ~ new_times$Duración[5],
-                              Servicio == "E02" & per == "am2" ~ new_times$Duración[6],
-                              Servicio == "E02" & per == "fp" ~ new_times$Duración[7],
-                              Servicio == "E02" & per == "pt1" ~ new_times$Duración[8]))
+  mutate(Duración = case_when(Servicio == "1001" & per == "am1" ~ new_times$Duración[1],
+                              Servicio == "1001" & per == "am2" ~ new_times$Duración[2],
+                              Servicio == "1001" & per == "fp" ~ new_times$Duración[3],
+                              Servicio == "1001" & per == "pt1" ~ new_times$Duración[4],
+                              Servicio == "1002" & per == "am1" ~ new_times$Duración[5],
+                              Servicio == "1002" & per == "am2" ~ new_times$Duración[6],
+                              Servicio == "1002" & per == "fp" ~ new_times$Duración[7],
+                              Servicio == "1002" & per == "pt1" ~ new_times$Duración[8]))
+#final datasets ----
+
