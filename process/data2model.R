@@ -65,9 +65,11 @@ new_data_pred <- shar2 %>%
                           Servicio == "1002" & per == "am1" ~ 2,
                           Servicio == "1002" & per == "am2" ~ 8,
                           Servicio == "1002" & per == "fp" ~ 8,
-                          Servicio == "1002" & per == "pt1" ~ 11),
+                          Servicio == "1002" & per == "pt1" ~ 11,
+                          T ~ Frec),
          Distancia = case_when(Servicio == "1001" ~ 46.79,
-                               Servicio == "1002" ~ 48.05))
+                               Servicio == "1002" ~ 48.05,
+                               T ~ Distancia))
 
 new_times <- read_xlsx("data/new_times.xlsx", sheet = "Hoja1") %>%
   separate(sersen, c("Servicio", "Sentido")) %>%
@@ -83,5 +85,6 @@ new_data_pred <- new_data_pred %>%
                               Servicio == "1002" & per == "am1" ~ new_times$Duración[5],
                               Servicio == "1002" & per == "am2" ~ new_times$Duración[6],
                               Servicio == "1002" & per == "fp" ~ new_times$Duración[7],
-                              Servicio == "1002" & per == "pt1" ~ new_times$Duración[8]))
+                              Servicio == "1002" & per == "pt1" ~ new_times$Duración[8],
+                              T ~ Duración))
 
