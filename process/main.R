@@ -109,6 +109,8 @@ rm(fleet, inf5, inf5_fl)
 source("process/Gl_param.R", encoding = "utf-8")
 #passenger data
 source("process/pssgr.R", encoding = "utf-8")
+#final data
+source("process/data2model.R", encoding = "utf-8")
 #calling process ----
 render(input = "report/reportProcess.Rmd", 
        output_file = "Reporte Demanda", 

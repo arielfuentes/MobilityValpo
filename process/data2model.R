@@ -31,6 +31,8 @@ sharing <- left_join(sharing, BD2016) %>%
   ungroup() %>%
   left_join(distinct(BD2016, Servicio, UN))
 
+#final datasets ----
+
 shar2 <- left_join(sharing, lines_dt) %>%
   na.omit() %>%
   select(-c("Pax Total", "Pax * Km"))
@@ -82,5 +84,4 @@ new_data_pred <- new_data_pred %>%
                               Servicio == "1002" & per == "am2" ~ new_times$Duración[6],
                               Servicio == "1002" & per == "fp" ~ new_times$Duración[7],
                               Servicio == "1002" & per == "pt1" ~ new_times$Duración[8]))
-#final datasets ----
 
