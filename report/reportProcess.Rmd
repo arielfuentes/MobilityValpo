@@ -245,3 +245,29 @@ ggpairs(lines_dt[lines_dt$per == "pt1" & lines_dt$modo1 %in% c("bus","busmer"), 
   theme_grey(base_size = 4)
 ````
 
+## PROCEDIMIENTO
+
+De las fuentes de datos disponibles, esto es del estudio *CIS* para día laboral y los parámetros de la red de modelación sectra, esto es, para los periodos: *am1, am2, fp, pt1*. 
+
+El modelo ha sido estrcuturado según las siguientes variables: 
+
+- Periodo
+- Servicio
+- Tipo de Usuario
+- Clasificación de Tarifa
+- Tiempo de Recorrido
+- Distancia de Recorrido
+- Frecuencias
+
+Las categorías de Usuario son las siguientes:
+
+Las clasificación de Tarifa es la siguiente:
+
+## RESULTADOS
+
+````{r, echo = F}
+
+kable(rts_new, format.args = list(big.mark = ",")) %>%
+  kable_paper("striped", full_width = F) %>%
+  column_spec(1:2, bold = T, color = "white", background = "#D7261E")
+````

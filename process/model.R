@@ -1,19 +1,18 @@
 #libraries ----
 library(tidymodels)
-# library(vip)
 #split data ----
 set.seed(123)
-demand_split <- initial_split(shar2, 
+demand_split <- initial_split(data_f, 
                                   prop = 3/4, 
-                                  strata = Pasajero)
+                                  strata = Tarifa)
 demand_train <- training(demand_split)
 demand_test <- testing(demand_split)
 ##training proportion ----
 demand_train %>%
-  count(Pasajero) %>%
+  count(Tarifa) %>%
   mutate(prop = n/sum(n))
 demand_test %>%
-  count(Pasajero) %>%
+  count(Tarifa) %>%
   mutate(prop = n/sum(n))
 #define model ----
 rf_mod <- 
@@ -75,7 +74,7 @@ ggplot(SUBEN_res, aes(.pred, res)) +
   geom_smooth(formula= y~x)
 ##pred new data ----
 rf_new_pred <- predict(rf_fit, new_data_pred) %>%
-  bind_cols(shar2)
+  bind_cols(data_f)
 ggplot(rf_new_pred, aes(.pred, Demanda)) +
   geom_point() + 
   facet_wrap(~Pasajero) +

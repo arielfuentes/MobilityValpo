@@ -2,10 +2,10 @@ library(readxl)
 library(dplyr)
 library(tibble)
 #new data construction ----
-serv <- pull(distinct(BD2016, Servicio))[1:106]
-per <- pull(distinct(filter(BD2016, per != "Otro"), per))
-Pas <- pull(distinct(BD2016, Pasajero))
-Tarifa <- pull(distinct(BD2016, Tarifa))
+serv <- pull(distinct(DOI, Servicio))[1:106]
+per <- pull(distinct(DOI, per))
+Pas <- pull(distinct(DOI, Pasajero))
+Tarifa <- pull(distinct(DOI, Tarifa))
 
 
 sharing <- tibble(Tar = rep(Tarifa, each = 4),
@@ -21,19 +21,25 @@ sharing <- tibble(Servicio = rep(serv, each = 140),
                   Pas_Tar_per = rep(sharing$Pas_Tar_per, times = 106)) %>%
   separate(Pas_Tar_per, c("Pasajero", "Tarifa", "per"), sep = "_")
 
-sharing <- left_join(sharing, BD2016) %>%
+sharing <- left_join(sharing, DOI) %>%
   select(-UN) %>%
-  mutate(Demanda = if_else(is.na(Demanda), 0, Demanda)) %>%
+  mutate(Demanda = if_else(is.na(Demanda), 0, Demanda),
+         Pasajero = if_else(Pasajero == "Niño Sin Uniforme",
+                            "Escolar de Educación Básica",
+                            Pasajero)
+         ) %>%
   arrange(Servicio, per, Pasajero, Tarifa) %>%
-  group_by(Servicio,
-           per) %>%
-  # mutate(`% particip` = Demanda/sum(Demanda)) %>%
+  group_by(per,
+           # UN,
+           Servicio,
+           Pasajero,
+           Tarifa) %>%
+  summarise(Demanda = sum(Demanda)) %>%
   ungroup() %>%
-  left_join(distinct(BD2016, Servicio, UN))
+  left_join(distinct(DOI, Servicio, UN))
 
-#final datasets ----
-
-shar2 <- left_join(sharing, lines_dt) %>%
+#final dataset ----
+data_f <- left_join(sharing, lines_dt) %>%
   na.omit() %>%
   select(-c("Pax Total", "Pax * Km"))
 
@@ -57,7 +63,7 @@ shar2 <- left_join(sharing, lines_dt) %>%
 #                           Servicio == "1002" & per == "fp" ~ 8,
 #                           Servicio == "1002" & per == "pt1" ~ 11))
 
-new_data_pred <- shar2 %>%
+new_data_pred <- data_f %>%
   mutate(Frec = case_when(Servicio == "1001" & per == "am1" ~ 6,
                           Servicio == "1001" & per == "am2" ~ 12,
                           Servicio == "1001" & per == "fp" ~ 8,
@@ -88,3 +94,4 @@ new_data_pred <- new_data_pred %>%
                               Servicio == "1002" & per == "pt1" ~ new_times$Duración[8],
                               T ~ Duración))
 
+rm(new_times)
