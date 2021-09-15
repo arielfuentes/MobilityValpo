@@ -75,7 +75,8 @@ new_data_pred <- data_f %>%
                           T ~ Frec),
          Distancia = case_when(Servicio == "1001" ~ 46.79,
                                Servicio == "1002" ~ 48.05,
-                               T ~ Distancia))
+                               T ~ Distancia)
+         )
 
 new_times <- read_xlsx("data/new_times.xlsx", sheet = "Hoja1") %>%
   separate(sersen, c("Servicio", "Sentido")) %>%
@@ -93,5 +94,16 @@ new_data_pred <- new_data_pred %>%
                               Servicio == "1002" & per == "fp" ~ new_times$Duración[7],
                               Servicio == "1002" & per == "pt1" ~ new_times$Duración[8],
                               T ~ Duración))
+
+# new_data_pred <- new_data_pred %>%
+#   mutate(Duración = case_when(Servicio == "1001" & per == "am1" ~ 82.9213508,
+#                               Servicio == "1001" & per == "am2" ~ 100.142836,
+#                               Servicio == "1001" & per == "fp" ~ 84.9513805,
+#                               Servicio == "1001" & per == "pt1" ~ 92.0544982,
+#                               Servicio == "1002" & per == "am1" ~ 84.9833801,
+#                               Servicio == "1002" & per == "am2" ~ 99.9532478,
+#                               Servicio == "1002" & per == "fp" ~ 87.3646872,
+#                               Servicio == "1002" & per == "pt1" ~ 93.8419968,
+#                               T ~ Duración))
 
 rm(new_times)
