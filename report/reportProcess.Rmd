@@ -32,7 +32,7 @@ htmltools::img(src = knitr::image_uri(file.path("../data/img/logoTransdev.png")
 ## INTRODUCCIÓN
 
 En este documento se analizará la movilidad de Valparaiso y la aplicación de las nuevas rutas eléctricas.
-Es un electrocorredor con 2 nuevos servicios, recorrerán entre Placilla y Plaza Wheelwrigth), diferenciándose en sus trazados en Placilla. Como referencia inicial tenemos el recorrido 901, 902, 903 y 800x(trolebus).
+Es un electrocorredor con 2 nuevos servicios, recorrerán entre Placilla y Plaza Wheelwrigth), diferenciándose en sus trazados en Placilla. Como referencia inicial tenemos el recorrido 901, 902.
 
 Referencialmente, la característica de los servicios es la siguiente:
 
@@ -66,9 +66,25 @@ ggplot(Frec, aes(x=Hora, y=Frecuencia)) +
   theme_bw()
 ````
 
+## ANÁLISIS EXPLORATORIO
+
 La topología de los recorridos es la siguiente:
 
 ````{r, message = F, warning = F, echo = F, fig.align = 'center', out.width = '100%'}
+#readkmz function ----
+source("../process/kmz2sf.R", encoding = "utf-8")
+#read kmz ----
+elec_rt <- kmz2sf(kmz_path = "../data/trazado+concurso+valparaíso.kmz",
+                  path = "../data/",
+                  exdir = paste0(getwd(), "/data")) %>%
+  select(-Description) %>%
+  rename(Rutas = Name) %>%
+  mutate(Rutas = c("E01I", "E01R", "E02NR", "E02I", "E02R"),
+         Dist = units::set_units(st_length(.), "km"))
+#read gpkg ----
+rts_geo.h <- map(list.files("../data/recorridos/", full.names = T), 
+                 st_read)
+
 map <- tm_basemap(leaflet::providers$Esri.WorldImagery) +
   tm_basemap(leaflet::providers$OpenStreetMap) +
   tm_shape(elec_rt) + 
@@ -98,11 +114,17 @@ map <- tm_basemap(leaflet::providers$Esri.WorldImagery) +
   tm_lines(col = "black")
 
 tmap_leaflet(map)
+
+rm(rts_geo.h, map)
 ````
 
 La elevación del Terreno en los puntos que pasan los recorridos es la siguiente:
 
 ````{r, echo = F, warning = F}
+#elev data ----
+source("../process/elev.R", encoding = "utf-8")
+elec_rst <- elev_pts(elec_rt)
+
 ggplot(elec_rst, aes(Orden, elevation)) +
   geom_line() +
   labs(title = "Elevaciones", y = "Elevación") +
@@ -112,11 +134,16 @@ ggplot(elec_rst, aes(Orden, `% elev`)) +
   geom_line() +
   labs(title = "Pendiente", y = "%") +
   facet_wrap(~Rutas, nrow = 3)
+
+rm(elec_rt, elec_rst)
 ````
 
 Para entender el efecto de la Temperatura se grafica las temperaturas extremas, tanto de la *<span style="color: #FF0000;">línea base</span>* (1980-2010) como el *<span style="color: #FF0000;">Escenario</span>* (2050):
 
 ````{r, echo = F, warning = F}
+#adding general parameters ----
+source("../process/Gl_param.R", encoding = "utf-8")
+
 ggplot(temp, aes(Sector_class, Temp, fill = T_class)) +
   geom_bar(stat = "identity") +
   facet_wrap(~factor(tipo, levels = c("Linea Base", "2050")
@@ -181,9 +208,11 @@ ggplot(vel, aes(hora, Velocidad)) +
                           levels = c("Laboral", "Sábado", "Domingo")),
              nrow = 4) +
   scale_x_continuous(breaks = seq(5,24, by = 2))
+
+rm(vel, temp, acopios, acopios_Cab, acopios_Circ, acopios_Dep, Camello)
 ````
 
-La relación entre las variables procesadas para los buses a nivel de sentido es la siguiente:
+La relación entre las variables procesadas según la calibración de la modelación ESTRAUS, para los buses a nivel de sentido es la siguiente:
 
 - Punta Mañana 1:
 
@@ -213,12 +242,39 @@ ggpairs(nt_dt[nt_dt$per == "pt1" & nt_dt$modo1 %in% c("bus","busmer"), c(4:9, 11
 theme_grey(base_size = 4)
 ````
 
-En cambio si queremos ver la relación con la variable flota, lo hacemos a nivel de linea:
+Sin embargo, el modelo lo realizaremos a nivel de recorrido con información de demanda, tipo de usuario y tarifa; que será comandado por la medición del Estudio CIS; y complementado por los parámetros de operación capturados desde la modelación ESTRAUS.
+
+````{r, echo = F, warning = F, message = F, out.width = '100%'}
+lines_dt <- nt_dt %>%
+  group_by(rt, per, modo1) %>%
+  summarise(Duración = sum(Duración),
+            Distancia = sum(Distancia),
+            `Pax Total` = sum(`Pax Total`),
+            `Pax * Km` = mean(`Pax * Km`),
+            Frec = sum(Frec)) %>%
+  ungroup() %>%
+  group_by(rt, per) %>%
+  summarise(Duración = mean(Duración),
+            Distancia = mean(Distancia),
+            `Pax Total` = sum(`Pax Total`),
+            `Pax * Km` = max(`Pax * Km`),
+            Frec = mean(Frec)) %>%
+  ungroup() %>%
+  rename(Servicio = rt)
+
+rm(nt_dt, inf5, inf5_fl)
+#adding process from CIS survey
+source("../process/pssgr.R", encoding = "utf-8")
+#creating the final data 
+source("../process/data2model.R", encoding = "utf-8")
+````
+
+Por periodo el comportamiento para las unidades 9 y 10 sería el siguiente:
 
 - Punta Mañana 1:
 
 ````{r, echo = F, warning = F, message = F, out.width = '100%'}
-ggpairs(lines_dt[lines_dt$per == "am1" & lines_dt$modo1 %in% c("bus","busmer"), c(3:9)], aes(color = modo1)) +
+ggpairs(data_f[data_f$per == "am1" & data_f$Demanda > 0 & data_f$UN %in% c("9","10"),], aes(color = UN)) +
   theme_grey(base_size = 4)
 ````
 

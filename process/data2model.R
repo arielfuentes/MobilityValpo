@@ -78,7 +78,7 @@ new_data_pred <- data_f %>%
                                T ~ Distancia)
          )
 
-new_times <- read_xlsx("data/new_times.xlsx", sheet = "Hoja1") %>%
+new_times <- read_xlsx("../data/new_times.xlsx", sheet = "Hoja1") %>%
   separate(sersen, c("Servicio", "Sentido")) %>%
   group_by(Servicio, per) %>%
   summarise(Duración = sum(t)) %>%
@@ -106,4 +106,4 @@ new_data_pred <- new_data_pred %>%
 #                               Servicio == "1002" & per == "pt1" ~ 93.8419968,
 #                               T ~ Duración))
 
-rm(new_times)
+rm(new_times, sharing, DOI, lines_dt)

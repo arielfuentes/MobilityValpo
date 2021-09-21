@@ -3,14 +3,14 @@ library(dplyr)
 library(stringr)
 library(tidyr)
 #% of type of user and price by route & direction at working day ----
-TipoUsu <- read_xlsx("data/Anexo 6.1 - BD Subidas de Pasajeros Gran Valparaíso - Laboral VF.xlsx",
+TipoUsu <- read_xlsx("../data/Anexo 6.1 - BD Subidas de Pasajeros Gran Valparaíso - Laboral VF.xlsx",
                      sheet = "Tipo de Pasajero", 
                      range = "B3:C10") %>%
   rename(CodPasaj = `Código Típo de Pasajero`, 
          Pasajero = `Tipo de Pasajero`)
 
 #reading survey DDBB ----
-BD2016 <- read_xlsx("data/Anexo 6.1 - BD Subidas de Pasajeros Gran Valparaíso - Laboral VF.xlsx",
+BD2016 <- read_xlsx("../data/Anexo 6.1 - BD Subidas de Pasajeros Gran Valparaíso - Laboral VF.xlsx",
                     sheet = "Base Datos",
                     skip = 3,
                     col_types = c(rep("skip", times = 3),
