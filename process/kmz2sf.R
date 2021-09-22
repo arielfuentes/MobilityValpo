@@ -12,7 +12,7 @@ kmz2sf <- function(kmz_path, path, exdir){
   kml_dir <- paste0(path, "doc.kml")
   kml_layers <- st_layers(kml_dir)
   kml_fl <- kml_layers$name %>%
-    map(function(x) read_sf(kml_dir, layer = x)) %>%
+    map(function(x) read_sf(kml_dir, layer = x, quiet = T)) %>%
     bind_rows()
   return(kml_fl)
 }

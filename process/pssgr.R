@@ -48,7 +48,7 @@ BD2016 <- read_xlsx("../data/Anexo 6.1 - BD Subidas de Pasajeros Gran Valparaís
                          T ~ "Otro")
   )
 
-rm(TipoUsu) 
+# rm(TipoUsu) 
 
 #data on periods of interest ----
 DOI <- BD2016 %>%

@@ -82,8 +82,7 @@ elec_rt <- kmz2sf(kmz_path = "../data/trazado+concurso+valparaíso.kmz",
   mutate(Rutas = c("E01I", "E01R", "E02NR", "E02I", "E02R"),
          Dist = units::set_units(st_length(.), "km"))
 #read gpkg ----
-rts_geo.h <- map(list.files("../data/recorridos/", full.names = T), 
-                 st_read)
+rts_geo.h <- lapply(list.files("../data/recorridos/", full.names = T), function(x) st_read(x, quiet = T))
 
 map <- tm_basemap(leaflet::providers$Esri.WorldImagery) +
   tm_basemap(leaflet::providers$OpenStreetMap) +
@@ -140,7 +139,7 @@ rm(elec_rt, elec_rst)
 
 Para entender el efecto de la Temperatura se grafica las temperaturas extremas, tanto de la *<span style="color: #FF0000;">línea base</span>* (1980-2010) como el *<span style="color: #FF0000;">Escenario</span>* (2050):
 
-````{r, echo = F, warning = F}
+````{r, echo = F, warning = F, message = F}
 #adding general parameters ----
 source("../process/Gl_param.R", encoding = "utf-8")
 
@@ -274,14 +273,14 @@ Por periodo el comportamiento para las unidades 9 y 10 sería el siguiente:
 - Punta Mañana 1:
 
 ````{r, echo = F, warning = F, message = F, out.width = '100%'}
-ggpairs(data_f[data_f$per == "am1" & data_f$Demanda > 0 & data_f$UN %in% c("9","10"),], aes(color = UN)) +
+ggpairs(data_f[data_f$per == "am1" & data_f$Demanda > 0 & data_f$UN %in% c("9","10"), c(2:9)], aes(color = UN)) +
   theme_grey(base_size = 4)
 ````
 
 - Punta Mañana 2:
 
 ````{r, echo = F, warning = F, message = F, out.width = '100%'}
-ggpairs(lines_dt[lines_dt$per == "am2" & lines_dt$modo1 %in% c("bus","busmer"), c(3:9)], aes(color = modo1)) +
+ggpairs(data_f[data_f$per == "am2" & data_f$Demanda > 0 & data_f$UN %in% c("9","10"), c(2:9)], aes(color = UN)) +
   theme_grey(base_size = 4)
 
 ````
@@ -289,7 +288,7 @@ ggpairs(lines_dt[lines_dt$per == "am2" & lines_dt$modo1 %in% c("bus","busmer"), 
 - Fuera de Punta:
 
 ````{r, echo = F, warning = F, message = F, out.width = '100%'}
-ggpairs(lines_dt[lines_dt$per == "fp" & lines_dt$modo1 %in% c("bus","busmer"), c(3:9)], aes(color = modo1)) +
+ggpairs(data_f[data_f$per == "fp" & data_f$Demanda > 0 & data_f$UN %in% c("9","10"), c(2:9)], aes(color = UN)) +
   theme_grey(base_size = 4)
 
 ````
@@ -297,7 +296,7 @@ ggpairs(lines_dt[lines_dt$per == "fp" & lines_dt$modo1 %in% c("bus","busmer"), c
 - Punta Tarde:
 
 ````{r, echo = F, warning = F, message = F, out.width = '100%'}
-ggpairs(lines_dt[lines_dt$per == "pt1" & lines_dt$modo1 %in% c("bus","busmer"), c(3:9)], aes(color = modo1)) +
+ggpairs(data_f[data_f$per == "pt1" & data_f$Demanda > 0 & data_f$UN %in% c("9","10"), c(2:9)], aes(color = UN)) +
   theme_grey(base_size = 4)
 ````
 
@@ -317,13 +316,131 @@ El modelo ha sido estrcuturado según las siguientes variables:
 
 Las categorías de Usuario son las siguientes:
 
-Las clasificación de Tarifa es la siguiente:
+````{r, echo = F}
+TipoUsu$Pasajero[c(1:2, 4:7)]
+rm(TipoUsu)
+````
 
-## RESULTADOS
+La clasificación de Tarifa es la siguiente:
 
 ````{r, echo = F}
-
-kable(rts_new, format.args = list(big.mark = ",")) %>%
+Tarifa <- tibble(Tarifa = c("Cero", "Baja", "Local", "Media", "Alta"), 
+                  Rango = c("0", 
+                            "> 0 & <= 160",
+                            "> 160 & <= 300",
+                            "> 300 & < 150",
+                            ">= 450"))
+kable(Tarifa) %>%
   kable_paper("striped", full_width = F) %>%
-  column_spec(1:2, bold = T, color = "white", background = "#D7261E")
+  column_spec(1, bold = T, color = "white", background = "#D7261E")
 ````
+
+## MODELO Y ANALISIS DE RESULTADOS
+
+El modelo utilizado con los datos disponibles fue un Random Forest.
+
+Para el modelo, los datos fueron estratificados por Tarifa, cuya proporción es la siguiente:
+
+- Datos de Entrenamiento:
+
+````{r, echo = F, message = F}
+source("../process/model.R", encoding = "utf-8")
+demand_train %>%
+  count(Tarifa) %>%
+  mutate(prop = n/sum(n)) %>%
+  kable() %>%
+  kable_paper("striped", full_width = F)
+````
+
+- Datos de Testeo:
+
+````{r, echo = F}
+demand_test %>%
+  count(Tarifa) %>%
+  mutate(prop = n/sum(n)) %>%
+  kable() %>%
+  kable_paper("striped", full_width = F)
+````
+
+La definición del modelo es la siguiente:
+
+````{r, echo = F}
+rf_fit 
+````
+Se observa una clara relación lineal entre el ajuste (.pred) que produce el modelo y la demanda real en los datos de entrenamiento, sobretodo para los valores de menor rango:
+
+````{r, echo = F, warning = F, message = F}
+select(rf_train_pred, Demanda, .pred) %>%
+  ggplot(aes(.pred, Demanda)) +
+  geom_point() +
+  geom_smooth(formula= y~x)
+````
+
+Sin embargo, observamos una banda amplia, donde la precisión del modelo tiende a perderse en la medida que los valores de demanda crezcan.
+
+Sucede de forma similar con los datos de entrenamiento, que como es esperable, con un mayor nivel de desajuste.
+
+````{r, echo = F, warning = F, message = F}
+select(rf_test_pred, Demanda, .pred) %>%
+  ggplot(aes(.pred, Demanda)) +
+  geom_point() +
+  geom_smooth(formula= y~x)
+````
+
+Ahora nos importa como es el comportamiento a nivel de usuario, para el caso de los datos de entreamiento, es:
+
+````{r, echo = F, warning = F, message = F}
+select(rf_train_pred, Demanda, .pred, Pasajero) %>%
+  ggplot(aes(.pred, Demanda)) +
+  geom_point() +
+  facet_wrap(~Pasajero) +
+  geom_smooth(formula= y~x)
+````
+
+Vemos que el comportamiento es bastante razonable a excepción de los pasajeros de Movilidad Reducida y los Escolares de Educación Básica.
+
+En el caso de los datos de testeo parece ser que la relación lineal pasa a transformarse en exponencial, sim embargo tiende a estabilizarse para el caso del Usuario Adulto.
+
+````{r, echo = F, warning = F, message = F}
+select(rf_test_pred, Demanda, .pred, Pasajero) %>%
+  ggplot(aes(.pred, Demanda)) +
+  geom_point() +
+  facet_wrap(~Pasajero) +
+  geom_smooth(formula= y~x)
+````
+
+Por tanto, lo anterior nos indica que el modelo es razonable en función de las variables utilizadas y que frente a nuevos datos a introducir en el modelo (UN 10) producirá una mayor confiabilidad para el Usuario Adulto, que es el usuario más importante del sistema.
+
+Para validar lo anteriomente señalado obtendremos para ello los indicadores de rendimiento:
+
+Para el caso de los datos de entrenamiento se observa que el rsq es bueno y no está extremadamente alto, por lo que el modelo no está sobre ajustado y podremos confiar en los datos que se predigan con este. Si bien observamos en las gráficas anteriores que hay diferencias entre los valores que entrega el modelo, versus los reales, las medidas de error rmse (raíz del error cuadrático medio) y mae (error absoluto medio) no son altas.
+
+````{r, echo = F, warning = F, message = F}
+rf_train_pred %>%
+  metrics(Demanda, .pred) %>%
+  kable() %>%
+  kable_paper("striped", full_width = F)
+````
+
+En el caso de los datos de testeo, como era esperable el rsq baja, pero no en un nivel extremo, sino que queda en un valor de suficiencia dada la problemática y configuración del modelo, por otro lado, las cifras de error no cambian grandemente en comparación a los daros de entrenamiento:
+
+````{r, echo = F, warning = F, message = F}
+rf_test_pred %>%
+  metrics(Demanda, .pred) %>%
+  kable() %>%
+  kable_paper("striped", full_width = F)
+````
+
+Se comprueba que hay un cierto nivel de sesgo, este no impide un uso del modelo realizado.
+
+Para usar el modelo, consideramos las nuevas frecuencias, distancias y tiempos; obteniéndo como sistema lo siguiente:
+
+````{r, echo = F, warning = F, message = F}
+rf_new_pred <- predict(rf_fit, new_data_pred) %>%
+  bind_cols(data_f)
+ggplot(rf_new_pred, aes(.pred, Demanda)) +
+  geom_point() +
+  facet_wrap(~Pasajero) +
+  geom_smooth(formula= y~x)
+````
+

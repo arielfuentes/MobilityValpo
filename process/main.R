@@ -53,7 +53,7 @@ nt_dt <- lapply(inf5_fl, function(x) inf5(x)) %>%
                         rt == "2" ~ "1002",
                         T ~ rt))
 ##adding fleet data ----
-source("process/flt.R", encoding = "utf-8") 
+# source("process/flt.R", encoding = "utf-8") 
 
 # lines_dt <- nt_dt %>%
 #   group_by(idx, rt, per, modo1) %>%
@@ -86,31 +86,31 @@ source("process/flt.R", encoding = "utf-8")
 #   ungroup() %>%
 #   rename(Servicio = rt)
 
-lines_dt <- nt_dt %>%
-  group_by(rt, per, modo1) %>%
-  summarise(Duración = sum(Duración),
-            Distancia = sum(Distancia),
-            `Pax Total` = sum(`Pax Total`),
-            `Pax * Km` = mean(`Pax * Km`),
-            Frec = sum(Frec)) %>%
-  ungroup() %>%
-  group_by(rt, per) %>%
-  summarise(Duración = mean(Duración),
-            Distancia = mean(Distancia),
-            `Pax Total` = sum(`Pax Total`),
-            `Pax * Km` = max(`Pax * Km`),
-            Frec = mean(Frec)) %>%
-  ungroup() %>%
-  rename(Servicio = rt)  
-  
-rm(fleet, inf5, inf5_fl)
+# lines_dt <- nt_dt %>%
+#   group_by(rt, per, modo1) %>%
+#   summarise(Duración = sum(Duración),
+#             Distancia = sum(Distancia),
+#             `Pax Total` = sum(`Pax Total`),
+#             `Pax * Km` = mean(`Pax * Km`),
+#             Frec = sum(Frec)) %>%
+#   ungroup() %>%
+#   group_by(rt, per) %>%
+#   summarise(Duración = mean(Duración),
+#             Distancia = mean(Distancia),
+#             `Pax Total` = sum(`Pax Total`),
+#             `Pax * Km` = max(`Pax * Km`),
+#             Frec = mean(Frec)) %>%
+#   ungroup() %>%
+#   rename(Servicio = rt)  
+#   
+# rm(fleet, inf5, inf5_fl)
 
 # #adding general parameters ----
 # source("process/Gl_param.R", encoding = "utf-8")
 #passenger data
-source("process/pssgr.R", encoding = "utf-8")
-#final data
-source("process/data2model.R", encoding = "utf-8")
+# source("process/pssgr.R", encoding = "utf-8")
+# #final data
+# source("process/data2model.R", encoding = "utf-8")
 #calling process ----
 render(input = "report/reportProcess.Rmd", 
        output_file = "Reporte Demanda", 
