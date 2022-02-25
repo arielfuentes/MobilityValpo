@@ -17,7 +17,7 @@ connect_to_access_dbi <- function(db_file_path)  {
   return(myconn)
 }
 
-con <- connect_to_access_dbi("data/MedicionesValp.accdb")
+con <- connect_to_access_dbi("data/Anexo 6.5 - BD Buses Gran Valparaiso VF.accdb")
 sql <- "SELECT TipoServicio.TipoServicio, 
 Subida_Pasajeros.FechaID AS Fecha,
 Dia.TipoDia, 
@@ -71,13 +71,15 @@ trips <- dbGetQuery(conn = con,
 dbDisconnect(con)
 trips <- mutate(trips, 
                  HoraSalida = as.POSIXct(HoraSalida, 
-                                         format = "%d/%m/%Y %I:%M:%S %p", 
+                                         format = "%d-%m-%Y %H:%M:%S", 
                                          tz = "UTC"),
                  HoraLlegada = as.POSIXct(HoraLlegada, 
-                                         format = "%d/%m/%Y %I:%M:%S %p", 
+                                         format = "%d-%m-%Y %H:%M:%S", 
                                          tz = "UTC"),
-                tviaje = as.numeric(as.duration(interval(HoraSalida, HoraLlegada)),
-                                    "minutes")) %>%
+               tviaje = as.numeric(as.duration(interval(HoraSalida, HoraLlegada)),
+                                   "minutes"),
+               Recaudación = Demanda*Tarifa
+) %>%
   group_by(TipoServicio, TipoDia, Servicio, Sentido, Fecha, HoraInicio, CorrelSalidaBusID, TipoPax, Tarifa) %>%
-  summarise(tviaje = sum(tviaje), Demanda = sum(Demanda)) %>%
+  summarise(tviaje = sum(tviaje), Demanda = sum(Demanda), Recaudación = sum(Recaudación)) %>%
   ungroup()
