@@ -1,5 +1,6 @@
 library(dplyr)
 library(lubridate)
+library(ggplot2)
 connect_to_access_dbi <- function(db_file_path)  {
   require(DBI)
   # make sure that the file exists before attempting to connect
@@ -80,6 +81,64 @@ trips <- mutate(trips,
                                    "minutes"),
                Recaudación = Demanda*Tarifa
 ) %>%
-  group_by(TipoServicio, TipoDia, Servicio, Sentido, Fecha, HoraInicio, CorrelSalidaBusID, TipoPax, Tarifa) %>%
-  summarise(tviaje = sum(tviaje), Demanda = sum(Demanda), Recaudación = sum(Recaudación)) %>%
+  group_by(TipoServicio, TipoDia, Servicio, Sentido, Fecha, HoraInicio, 
+           # CorrelSalidaBusID, 
+           TipoPax, Tarifa) %>%
+  summarise(tviaje = mean(tviaje), Demanda = sum(Demanda), Recaudación = sum(Recaudación)) %>%
   ungroup()
+
+trips %>%
+  filter(TipoServicio == "Urbano" & 
+           TipoDia != "lunes" &
+           TipoPax == "Adulto" &
+           Servicio %in% c("120", "121", "122", "125")
+           ) %>%
+  ggplot(aes(y = Demanda, x = factor(HoraInicio))) +
+  geom_boxplot() +
+  facet_wrap(~ TipoPax)
+
+trips %>%
+  filter(TipoServicio == "Urbano" & 
+           TipoDia != "lunes" &
+           TipoPax != "Adulto" &
+           Servicio %in% c("120", "121", "122", "125")
+  ) %>%
+  ggplot(aes(y = Demanda, x = factor(HoraInicio))) +
+  geom_boxplot() +
+  facet_wrap(~ TipoPax)
+
+trips %>%
+  filter(TipoServicio == "Urbano" & 
+           TipoDia != "lunes" &
+           TipoPax == "Adulto" &
+           Servicio %in% c("120", "121", "122", "125")
+  ) %>%
+  ggplot(aes(y = Demanda, x = factor(HoraInicio))) +
+  geom_violin() +
+  facet_wrap(~ TipoPax)
+
+trips %>%
+  filter(TipoServicio == "Urbano" & 
+           TipoDia != "lunes" &
+           TipoPax != "Adulto" &
+           Servicio %in% c("120", "121", "122", "125")
+  ) %>%
+  ggplot(aes(y = Demanda, x = factor(HoraInicio))) +
+  geom_violin() +
+  facet_wrap(~ TipoPax)
+
+trips %>%
+  filter(TipoServicio == "Urbano" & 
+           TipoDia != "lunes" &
+           TipoPax != "Adulto" &
+           Servicio %in% c("120", "121", "122", "125")
+  ) %>%
+  ggplot(aes(x = Demanda, fill = factor(HoraInicio))) +
+  geom_density(alpha = .5) +
+  facet_wrap(~ TipoPax)
+
+trips %>%
+  filter(TipoServicio == "Urbano" & TipoDia != "lunes") %>%
+  ggplot(aes(y = Demanda, x = log1p(tviaje))) +
+  geom_point() +
+  facet_wrap(~ TipoDia + TipoPax)
