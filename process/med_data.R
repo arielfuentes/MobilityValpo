@@ -70,16 +70,19 @@ trips <- dbGetQuery(conn = con,
                     statement = sql) %>%
   as_tibble()
 dbDisconnect(con)
-trips <- mutate(trips, 
-                 HoraSalida = as.POSIXct(HoraSalida, 
-                                         format = "%d-%m-%Y %H:%M:%S", 
-                                         tz = "UTC"),
-                 HoraLlegada = as.POSIXct(HoraLlegada, 
-                                         format = "%d-%m-%Y %H:%M:%S", 
-                                         tz = "UTC"),
-               tviaje = as.numeric(as.duration(interval(HoraSalida, HoraLlegada)),
-                                   "minutes"),
-               Recaudación = Demanda*Tarifa
+trips <- filter(trips, TipoPax != "Movilidad Reducida" #& TipoDia != "lunes"
+                ) %>%
+  mutate(HoraSalida = as.POSIXct(HoraSalida, 
+                                 format = "%d-%m-%Y %H:%M:%S", 
+                                 tz = "UTC"),
+         HoraLlegada = as.POSIXct(HoraLlegada, 
+                                  format = "%d-%m-%Y %H:%M:%S", 
+                                  tz = "UTC"),
+         tviaje = as.numeric(as.duration(interval(HoraSalida, HoraLlegada)),
+                             "minutes"),
+         Recaudación = Demanda*Tarifa,
+         TipoPax = if_else(TipoPax == "Niño", "Escolar Básica", TipoPax),
+         CatUsu = if_else(TipoPax == "Adulto", "Adulto", "Otro")
 ) %>%
   group_by(TipoServicio, TipoDia, Servicio, Sentido, Fecha, HoraInicio, 
            # CorrelSalidaBusID, 
@@ -89,9 +92,9 @@ trips <- mutate(trips,
 
 trips %>%
   filter(TipoServicio == "Urbano" & 
-           TipoDia != "lunes" &
+           # TipoDia != "lunes" &
            TipoPax == "Adulto" &
-           Servicio %in% c("120", "121", "122", "125")
+           Servicio %in% c("120", "121", "122", "125", "104", "115", "123")
            ) %>%
   ggplot(aes(y = Demanda, x = factor(HoraInicio))) +
   geom_boxplot() +
@@ -101,7 +104,7 @@ trips %>%
   filter(TipoServicio == "Urbano" & 
            TipoDia != "lunes" &
            TipoPax != "Adulto" &
-           Servicio %in% c("120", "121", "122", "125")
+           Servicio %in% c("120", "121", "122", "125", "104", "115", "123")
   ) %>%
   ggplot(aes(y = Demanda, x = factor(HoraInicio))) +
   geom_boxplot() +
