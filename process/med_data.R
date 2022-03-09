@@ -1,25 +1,30 @@
+library(DBI)
 library(dplyr)
 library(stringr)
 library(lubridate)
 library(ggplot2)
-connect_to_access_dbi <- function(db_file_path)  {
-  require(DBI)
-  # make sure that the file exists before attempting to connect
-  if (!file.exists(db_file_path)) {
-    stop("DB file does not exist at ", db_file_path)
-  }
-  # Assemble connection strings
-  dbq_string <- paste0("DBQ=", db_file_path)
-  driver_string <- "Driver={Microsoft Access Driver (*.mdb, *.accdb)};"
-  db_connect_string <- paste0(driver_string, dbq_string)
-  
-  myconn <- dbConnect(odbc::odbc(),
-                      .connection_string = db_connect_string,
-                      encoding = "latin1")
-  return(myconn)
-}
-
-con <- connect_to_access_dbi("data/Anexo 6.5 - BD Buses Gran Valparaiso VF.accdb")
+# connect_to_access_dbi <- function(db_file_path)  {
+#   require(DBI)
+#   # make sure that the file exists before attempting to connect
+#   if (!file.exists(db_file_path)) {
+#     stop("DB file does not exist at ", db_file_path)
+#   }
+#   # Assemble connection strings
+#   dbq_string <- paste0("DBQ=", db_file_path)
+#   driver_string <- "Driver={Microsoft Access Driver (*.mdb, *.accdb)};"
+#   db_connect_string <- paste0(driver_string, dbq_string)
+#   
+#   myconn <- dbConnect(odbc::odbc(),
+#                       .connection_string = db_connect_string,
+#                       encoding = "latin1")
+#   return(myconn)
+# }
+# 
+# con <- connect_to_access_dbi("data/Anexo 6.5 - BD Buses Gran Valparaiso VF.accdb")
+con <- 
+  dbConnect(odbc::odbc(),
+            .connection_string = "Driver={Microsoft Access Driver (*.mdb, *.accdb)}; DBQ=data/Anexo 6.5 - BD Buses Gran Valparaiso VF.accdb",
+            encoding = "latin1")
 sql <- "SELECT TipoServicio.TipoServicio, 
 Subida_Pasajeros.FechaID AS Fecha,
 Dia.TipoDia, 
@@ -71,8 +76,8 @@ trips <- dbGetQuery(conn = con,
                     statement = sql) %>%
   as_tibble()
 dbDisconnect(con)
-trips <- filter(trips, TipoPax != "Movilidad Reducida" #& TipoDia != "lunes"
-                ,str_detect(Servicio, "-") == F
+trips <- filter(trips, TipoPax != "Movilidad Reducida" & TipoDia != "lunes"
+                & str_detect(Servicio, "-") == F
                 ) %>%
   mutate(HoraSalida = as.POSIXct(HoraSalida, 
                                  format = "%d-%m-%Y %H:%M:%S", 
