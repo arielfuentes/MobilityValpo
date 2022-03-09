@@ -1,4 +1,5 @@
 library(dplyr)
+library(stringr)
 library(lubridate)
 library(ggplot2)
 connect_to_access_dbi <- function(db_file_path)  {
@@ -71,6 +72,7 @@ trips <- dbGetQuery(conn = con,
   as_tibble()
 dbDisconnect(con)
 trips <- filter(trips, TipoPax != "Movilidad Reducida" #& TipoDia != "lunes"
+                ,str_detect(Servicio, "-") == F
                 ) %>%
   mutate(HoraSalida = as.POSIXct(HoraSalida, 
                                  format = "%d-%m-%Y %H:%M:%S", 
@@ -82,9 +84,12 @@ trips <- filter(trips, TipoPax != "Movilidad Reducida" #& TipoDia != "lunes"
                              "minutes"),
          Recaudación = Demanda*Tarifa,
          TipoPax = if_else(TipoPax == "Niño", "Escolar Básica", TipoPax),
-         CatUsu = if_else(TipoPax == "Adulto", "Adulto", "Otro")
+         CatUsu = if_else(TipoPax == "Adulto", "Adulto", "Otro"),
+         TipoRec = factor(case_when(Servicio %in% c("104", "104-1", "115", "122", "123" ) ~ 2,
+                             Servicio %in% c("120", "121", "121-1", "125" ) ~ 1,
+                             T ~ 0))
 ) %>%
-  group_by(TipoServicio, TipoDia, Servicio, Sentido, Fecha, HoraInicio, 
+  group_by(TipoServicio, TipoDia, Servicio, Sentido, Fecha, HoraInicio, TipoRec,
            # CorrelSalidaBusID, 
            TipoPax, Tarifa) %>%
   summarise(tviaje = mean(tviaje), Demanda = sum(Demanda), Recaudación = sum(Recaudación)) %>%
@@ -93,48 +98,43 @@ trips <- filter(trips, TipoPax != "Movilidad Reducida" #& TipoDia != "lunes"
 trips %>%
   filter(TipoServicio == "Urbano" & 
            # TipoDia != "lunes" &
-           TipoPax == "Adulto" &
-           Servicio %in% c("120", "121", "122", "125", "104", "115", "123")
+           TipoPax == "Adulto"
            ) %>%
   ggplot(aes(y = Demanda, x = factor(HoraInicio))) +
   geom_boxplot() +
-  facet_wrap(~ TipoPax)
+  facet_grid(rows = vars(TipoRec), cols = vars(TipoDia))
 
 trips %>%
   filter(TipoServicio == "Urbano" & 
            TipoDia != "lunes" &
-           TipoPax != "Adulto" &
-           Servicio %in% c("120", "121", "122", "125", "104", "115", "123")
+           TipoPax != "Adulto"
   ) %>%
   ggplot(aes(y = Demanda, x = factor(HoraInicio))) +
   geom_boxplot() +
-  facet_wrap(~ TipoPax)
+  facet_grid(rows = vars(TipoRec), cols = vars(TipoDia))
 
 trips %>%
   filter(TipoServicio == "Urbano" & 
            TipoDia != "lunes" &
-           TipoPax == "Adulto" &
-           Servicio %in% c("120", "121", "122", "125")
+           TipoPax == "Adulto"
   ) %>%
   ggplot(aes(y = Demanda, x = factor(HoraInicio))) +
   geom_violin() +
-  facet_wrap(~ TipoPax)
+  facet_grid(rows = vars(TipoRec), cols = vars(TipoDia))
 
 trips %>%
   filter(TipoServicio == "Urbano" & 
            TipoDia != "lunes" &
-           TipoPax != "Adulto" &
-           Servicio %in% c("120", "121", "122", "125")
+           TipoPax != "Adulto"
   ) %>%
   ggplot(aes(y = Demanda, x = factor(HoraInicio))) +
   geom_violin() +
-  facet_wrap(~ TipoPax)
+  facet_grid(rows = vars(TipoRec), cols = vars(TipoDia))
 
 trips %>%
   filter(TipoServicio == "Urbano" & 
            TipoDia != "lunes" &
-           TipoPax != "Adulto" &
-           Servicio %in% c("120", "121", "122", "125")
+           TipoPax != "Adulto"
   ) %>%
   ggplot(aes(x = Demanda, fill = factor(HoraInicio))) +
   geom_density(alpha = .5) +
@@ -142,6 +142,7 @@ trips %>%
 
 trips %>%
   filter(TipoServicio == "Urbano" & TipoDia != "lunes") %>%
-  ggplot(aes(y = Demanda, x = log1p(tviaje))) +
+  ggplot(aes(y = Demanda, x = log1p(tviaje), color = TipoPax)) +
   geom_point() +
-  facet_wrap(~ TipoDia + TipoPax)
+  geom_smooth(method = "lm", formula = y~x, color = "black") +
+  facet_grid(rows = vars(TipoRec), cols = vars(TipoDia))
