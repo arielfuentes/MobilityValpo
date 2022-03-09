@@ -33,13 +33,24 @@ rf_fit <- rf_wkf %>%
 rf_train_pred <- predict(rf_fit, trips_train) %>%
   bind_cols(select(trips_train, -c("Tarifa", "tviaje")))
 
-ggplot(rf_train_pred, aes(Demanda-.pred)) +
+group_by(rf_train_pred, Servicio, TipoDia, HoraInicio) %>%
+  summarise(Demanda = sum(Demanda), .pred = sum(.pred)) %>%
+ggplot(aes(Demanda-.pred)) +
   geom_density(alpha = .7, fill = "lightblue") +
   facet_wrap(~TipoDia)
 
-rf_test_pred <- predict(rf_fit, demand_test) %>%
-  bind_cols(demand_test)
+rf_all_pred <- predict(rf_fit, filter(trips, TipoServicio == "Urbano" & TipoRec != 0) %>% 
+                         select(-c("Fecha", "Recaudación", "TipoServicio")) %>%
+                         na.omit()) %>%
+  bind_cols(filter(trips, TipoServicio == "Urbano" & TipoRec != 0) %>% 
+              select(-c("Fecha", "Recaudación", "TipoServicio")) %>%
+              na.omit())
 
+group_by(rf_all_pred, Servicio, TipoDia, HoraInicio) %>%
+  summarise(Demanda = sum(Demanda), .pred = sum(.pred)) %>%
+  ggplot(aes(Demanda-.pred)) +
+  geom_density(alpha = .7, fill = "lightblue") +
+  facet_wrap(~TipoDia)
 ##############################################
 trips_recipe <- 
   recipe(Demanda ~ ., data = trips_train) %>%
@@ -91,7 +102,7 @@ tune_res %>%
   labs(x = NULL, y = "rsq")
 
 rf_grid <- grid_regular(
-  mtry(range = c(10, 25)),
+  mtry(range = c(5, 16)),
   min_n(range = c(0, 30)),
   levels = 5
 )
@@ -101,7 +112,7 @@ rf_grid
 set.seed(456)
 regular_res <- tune_grid(
   rf_wf,
-  resamples = mvl_cv,
+  resamples = trips_cv,
   grid = rf_grid
 )
 
@@ -129,16 +140,16 @@ library(vip)
 
 rf_model %>%
   set_engine("ranger", importance = "permutation") %>%
-  fit(Pax ~ .,
+  fit(Demanda ~ .,
       data = juiced) %>%
   vip(geom = "point")
 
 final_wf <- workflow() %>%
-  add_recipe(mvl_recipe) %>%
+  add_recipe(trips_recipe) %>%
   add_model(rf_model)
 
 final_res <- final_wf %>%
-  last_fit(mvl_split)
+  last_fit(trips_split)
 
 final_res %>%
   collect_metrics()
