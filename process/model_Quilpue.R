@@ -51,6 +51,31 @@ group_by(rf_all_pred, Servicio, TipoDia, HoraInicio) %>%
   ggplot(aes(Demanda-.pred)) +
   geom_density(alpha = .7, fill = "lightblue") +
   facet_wrap(~TipoDia)
+
+rf_new_pred <- predict(rf_fit, filter(trips_new, TipoServicio == "Urbano" & TipoRec != 0) %>% 
+                         select(-c("Fecha", "Recaudación", "TipoServicio")) %>%
+                         na.omit()) %>%
+  bind_cols(filter(trips_new, TipoServicio == "Urbano" & TipoRec != 0) %>% 
+              select(-c("Recaudación", "TipoServicio")) %>%
+              na.omit())
+
+HoraDia <- rf_new_pred %>% 
+  group_by(TipoDia, Servicio, HoraInicio) %>% 
+  summarise(n_dia = n_distinct(as.character(Fecha))) %>%
+  ungroup()
+group_by(rf_new_pred, Servicio, TipoDia, HoraInicio) %>%
+  summarise(Demanda = sum(Demanda), .pred = sum(.pred)) %>%
+  ungroup() %>%
+  left_join(HoraDia) %>%
+  mutate(Demanda = Demanda/n_dia, .pred = .pred/n_dia) %>%
+  select(-n_dia) %>%
+  group_by(TipoDia, Servicio) %>%
+  summarise(Demanda = sum(Demanda), .pred = sum(.pred)) %>%
+  ungroup() %>%
+  write_excel_csv("report/pred_t_quilpue.csv", ";")
+  ggplot(aes(y = Demanda, x = .pred)) +
+  geom_point()
+  
 ##############################################
 trips_recipe <- 
   recipe(Demanda ~ ., data = trips_train) %>%
